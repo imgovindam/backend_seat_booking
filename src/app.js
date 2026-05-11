@@ -26,13 +26,19 @@ app.use("/api/shows", showRoutes);
 
 // ✅ SINGLE DB CONNECTION
 connectDB().then(async () => {
-  console.log("DB Connected");
+  console.log("✅ DB Connected");
 
-  await seedMovies();
-  await seedShows();  // ✅ IMPORTANT
-  await seedSeats();
-
-  console.log("Seeding Done");
+  // Only seed if DB is empty — prevents memory crash on Render free tier
+  const movieCount = await require("./models/Movie").countDocuments();
+  if (movieCount === 0) {
+    console.log("🌱 Empty DB — seeding...");
+    await seedMovies();
+    await seedShows();
+    await seedSeats();
+    console.log("✅ Seeding Done");
+  } else {
+    console.log("✅ DB already seeded — skipping");
+  }
 });
 
 app.get("/", (req, res) => {
