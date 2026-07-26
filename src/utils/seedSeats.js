@@ -24,9 +24,7 @@ const Show = require("../models/Show");
 
 const seedSeats = async () => {
   try {
-    // ✅ Always wipe and re-seed so seats stay in sync with shows
-    // The old guard `if (existing > 0) return` was silently skipping
-    // re-seeds after schema changes — seats had no `show` field ever
+   
     await Seat.deleteMany();
 
     const shows = await Show.find({});

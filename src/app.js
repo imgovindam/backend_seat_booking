@@ -28,16 +28,38 @@ app.use("/api/shows", showRoutes);
 connectDB().then(async () => {
   console.log("✅ DB Connected");
 
-  // Only seed if DB is empty — prevents memory crash on Render free tier
-  const movieCount = await require("./models/Movie").countDocuments();
+  const Movie = require("./models/Movie");
+  const Show = require("./models/Show");
+  const Seat = require("./models/Seat");
+
+  const movieCount = await Movie.countDocuments();
+  const showCount = await Show.countDocuments();
+  const seatCount = await Seat.countDocuments();
+  const seatsMissingShowField = await Seat.countDocuments({ show: { $exists: false } });
+
   if (movieCount === 0) {
-    console.log("🌱 Empty DB — seeding...");
+    console.log("🌱 Empty DB — seeding movies...");
     await seedMovies();
+  }
+
+  if (showCount === 0) {
+    console.log("🌱 No shows found — seeding shows...");
     await seedShows();
+  }
+
+  const refreshedShowCount = await Show.countDocuments();
+  const expectedSeatCount = refreshedShowCount * 50;
+
+  if (
+    seatCount === 0 ||
+    seatsMissingShowField > 0 ||
+    seatCount !== expectedSeatCount
+  ) {
+    console.log("🌱 Seeding seats because seat data is missing or outdated...");
     await seedSeats();
-    console.log("✅ Seeding Done");
+    console.log("✅ Seats seeded");
   } else {
-    console.log("✅ DB already seeded — skipping");
+    console.log("✅ Seats already seeded — skipping");
   }
 });
 
