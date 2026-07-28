@@ -53,7 +53,8 @@ router.get  ("/seats/:showId", getSeats);
 
 // Protected — all mutations require login
 // ✅ All PATCH — must match seatSlice.js which sends PATCH for all three
-router.patch("/seats/lock",   authMiddleware, lockSeat);
+// router.patch("/seats/lock",   authMiddleware, lockSeat);
+router.patch("/seats/lock",   lockSeat);
 router.patch("/seats/book",   authMiddleware, bookSeat);
 router.patch("/seats/unbook", authMiddleware, unbookSeat);
 

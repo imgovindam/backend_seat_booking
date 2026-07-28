@@ -1,3 +1,48 @@
+// const mongoose = require("mongoose");
+
+// const bookingSchema = new mongoose.Schema(
+//   {
+//     user: {
+//       type: mongoose.Schema.Types.ObjectId,
+//       ref: "User",
+//       required: true,
+//     },
+//     show: {
+//       type: mongoose.Schema.Types.ObjectId,
+//       ref: "Show",
+//       required: true,
+//     },
+//     seats: [
+//       {
+//         type: mongoose.Schema.Types.ObjectId,
+//         ref: "Seat",
+//       },
+//     ],
+//     totalPrice: {
+//       type: Number,
+//       required: true,
+//     },
+//     status: {
+//       type: String,
+//       enum: ["pending", "confirmed", "cancelled"],
+//       default: "pending",
+//       // pending   → booking created, payment not done yet
+//       // confirmed → payment successful
+//       // cancelled → user cancelled or payment failed
+//     },
+//     paymentId: {
+//       type: String,
+//       default: null, // Razorpay payment ID — set after payment
+//     },
+//   },
+//   { timestamps: true } // adds createdAt + updatedAt automatically
+// );
+
+// module.exports = mongoose.model("Booking", bookingSchema);
+
+
+//** changes for razorpay */
+
 const mongoose = require("mongoose");
 
 const bookingSchema = new mongoose.Schema(
@@ -5,6 +50,13 @@ const bookingSchema = new mongoose.Schema(
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
+      required: false, // ✅ optional for now — guest checkout, no login required yet
+    },
+    guestName: {
+      type: String, // collected on the payment page for guests
+    },
+    guestEmail: {
+      type: String, // ✅ where the confirmation ticket gets sent
       required: true,
     },
     show: {
@@ -29,6 +81,10 @@ const bookingSchema = new mongoose.Schema(
       // pending   → booking created, payment not done yet
       // confirmed → payment successful
       // cancelled → user cancelled or payment failed
+    },
+    razorpayOrderId: {
+      type: String, // needed to look up the booking during payment verification
+      required: true,
     },
     paymentId: {
       type: String,

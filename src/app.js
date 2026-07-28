@@ -1,4 +1,9 @@
-require("dotenv").config();
+// require("dotenv").config();
+
+require("dotenv").config({
+  path: require("path").resolve(__dirname, "../.env"),
+});
+console.log("KEY:", process.env.RAZORPAY_KEY_ID);
 const express = require("express");
 const app = express();
 const cors = require("cors");
@@ -24,42 +29,43 @@ app.use("/api/auth", authRoutes);
 app.use("/api/movies", movieRoutes);
 app.use("/api/shows", showRoutes);
 
+const paymentRoutes = require("./routes/paymentRoutes");
+const bookingRoutes = require("./routes/bookingRoutes");
+
+app.use("/api/payment", paymentRoutes);   // create-order, verify
+app.use("/api/bookings", bookingRoutes);  // GET /:id for confirmation page
+
+
+
+
+//*** use it when wants to add new lists */
+// connectDB().then(async () => {
+//   console.log("✅ DB Connected");
+
+//   console.log("🌱 Force reseeding...");
+//   await seedMovies();
+//   await seedShows();
+//   await seedSeats();
+//   console.log("✅ Seeding Done");
+
+// });
+
+//** */
+
 // ✅ SINGLE DB CONNECTION
 connectDB().then(async () => {
   console.log("✅ DB Connected");
 
-  const Movie = require("./models/Movie");
-  const Show = require("./models/Show");
-  const Seat = require("./models/Seat");
-
-  const movieCount = await Movie.countDocuments();
-  const showCount = await Show.countDocuments();
-  const seatCount = await Seat.countDocuments();
-  const seatsMissingShowField = await Seat.countDocuments({ show: { $exists: false } });
-
+  // Only seed if DB is empty — prevents memory crash on Render free tier
+  const movieCount = await require("./models/Movie").countDocuments();
   if (movieCount === 0) {
-    console.log("🌱 Empty DB — seeding movies...");
+    console.log("🌱 Empty DB — seeding...");
     await seedMovies();
-  }
-
-  if (showCount === 0) {
-    console.log("🌱 No shows found — seeding shows...");
     await seedShows();
-  }
-
-  const refreshedShowCount = await Show.countDocuments();
-  const expectedSeatCount = refreshedShowCount * 50;
-
-  if (
-    seatCount === 0 ||
-    seatsMissingShowField > 0 ||
-    seatCount !== expectedSeatCount
-  ) {
-    console.log("🌱 Seeding seats because seat data is missing or outdated...");
     await seedSeats();
-    console.log("✅ Seats seeded");
+    console.log("✅ Seeding Done");
   } else {
-    console.log("✅ Seats already seeded — skipping");
+    console.log("✅ DB already seeded — skipping");
   }
 });
 
